@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You</title>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Raleway:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+    font-family: 'Raleway', sans-serif;
+    color: white;
+    background-color: #1a0b2e;
+}
+#bg-layers {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+.bg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 2s ease-in-out;
+    will-change: opacity;
+}
+.bg-layer.active {
+    opacity: 1;
+}
+#bg-0 { background: linear-gradient(135deg, #120524, #2a0a18, #1a0b2e); }
+#bg-1 { background: linear-gradient(135deg, #2a0a18, #ffb7c5, #ff9eaf); }
+#bg-2 { background: linear-gradient(135deg, #3a0008, #8b0000, #ff0844); }
+#bg-3 { background: linear-gradient(135deg, #1a1a00, #b8860b, #ffd700); }
+#bg-4 { background: linear-gradient(135deg, #4a3000, #d4af37, #ffb347); }
+#bg-5 { background: linear-gradient(135deg, #1d0033, #8a2be2, #da70d6); }
+#bg-6 { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); }
+#bg-7 { background: linear-gradient(135deg, #1a0b2e, #4b1d52, #8b3a62); }
+
+#firefly-container, #petal-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+#flower-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 6;
+}
+.photo-container {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 2s ease;
+}
+.photo-container.visible {
+    opacity: 1;
+}
+.photo-frame {
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+    box-shadow: 0 0 50px rgba(255, 182, 193, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.4);
+    border: 3px solid rgba(255, 209, 220, 0.6);
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    animation: morphFrame 10s ease-in-out infinite alternate;
+    background: rgba(255, 255, 255, 0.1);
+}
+.photo-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.95;
+    transform: scale(1.05);
+    transition: transform 1s ease;
+}
+@keyframes morphFrame {
+    0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+    100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+}
+#pages-container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+.page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 1.5s ease, visibility 1.5s ease;
+    box-sizing: border-box;
+}
+.page.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+.line {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1.5s ease, transform 1.5s ease;
+    margin: 15px 0;
+    line-height: 1.6;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.8), 0 0 20px rgba(255,182,193,0.3);
+    flex-shrink: 0;
+}
+.line.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.title-text {
+    font-family: 'Great Vibes', cursive;
+    color: #ffd1dc;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.8), 0 0 25px rgba(255, 182, 193, 0.8);
+    margin-bottom: 20px;
+}
+.poem-text {
+    font-family: 'Great Vibes', cursive;
+    font-size: 3.2rem;
+    color: #ffb6c1;
+    margin: 5px 0;
+    line-height: 1.3;
+}
+.quote-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    color: #fffacd;
+    font-style: italic;
+    margin: 10px 0;
+    line-height: 1.4;
+}
+.final-text {
+    font-weight: 600;
+    color: #ffb6c1;
+    margin-top: 30px;
+}
+
+/* Form Styles */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 320px;
+    margin-top: 20px;
+}
+.custom-input {
+    width: 100%;
+    padding: 14px 20px;
+    border: 2px solid rgba(255, 209, 220, 0.4);
+    border-radius: 25px;
+    background: rgba(26, 11, 46, 0.6);
+    color: #ffd1dc;
+    font-family: 'Raleway', sans-serif;
+    font-size: 1.1rem;
+    outline: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+.custom-input::placeholder {
+    color: rgba(255, 209, 220, 0.6);
+}
+.custom-input:focus {
+    border-color: #ffd1dc;
+    background: rgba(42, 10, 24, 0.8);
+    box-shadow: 0 0 15px rgba(255, 209, 220, 0.4), inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.next-btn {
+    margin-top: 40px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid #ffd1dc;
+    color: #ffd1dc;
+    padding: 12px 35px;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.5s ease;
+    pointer-events: none;
+    font-family: 'Montserrat', sans-serif;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+.next-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.next-btn:hover {
+    background: #ffd1dc;
+    color: #4b1d52;
+    box-shadow: 0 0 20px rgba(255, 209, 220, 0.7);
+    transform: scale(1.05);
+}
+.flower-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    max-width: 500px;
+    margin: 10px 0;
+    flex-shrink: 0;
+}
+.interactive-flower {
+    font-size: 3rem;
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: floatFlower 3s infinite ease-in-out alternate;
+    text-shadow: 0 0 15px rgba(255,255,255,0.4);
+    will-change: transform;
+}
+.interactive-flower:hover {
+    transform: scale(1.3) rotate(10deg);
+}
+.interactive-flower:nth-child(even) { animation-delay: 1.5s; }
+.interactive-flower:nth-child(3n) { animation-delay: 0.7s; }
+@keyframes floatFlower {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+}
+.pickup-display {
+    font-family: 'Great Vibes', cursive;
+    font-size: 2.2rem;
+    color: #fffacd;
+    min-height: 80px;
+    margin: 10px 0;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    line-height: 1.2;
+    flex-shrink: 0;
+}
+.pickup-display.show {
+    opacity: 1;
+}
+.petal {
+    position: absolute;
+    border-radius: 50% 0 50% 0;
+    opacity: 0.7;
+    animation: fall linear forwards;
+    will-change: transform;
+}
+.firefly {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
+    opacity: 0;
+    box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.8);
+    animation: drift linear forwards;
+    will-change: transform;
+}
+@keyframes fall {
+    0% { transform: translateY(-10vh) translateX(0) rotate(0deg) scale(0.5); opacity: 0; }
+    10% { opacity: 0.8; }
+    50% { transform: translateY(40vh) translateX(20px) rotate(360deg) scale(1); }
+    80% { opacity: 0.8; }
+    100% { transform: translateY(110vh) translateX(-20px) rotate(720deg) scale(1.2); opacity: 0; }
+}
+@keyframes drift {
+    0% { transform: translateY(110vh) scale(0.2); opacity: 0; }
+    20% { opacity: 0.6; }
+    80% { opacity: 0.6; }
+    100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+}
+.bloom {
+    position: absolute;
+    font-size: 2.5rem;
+    animation: pop 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    pointer-events: none;
+    z-index: 5;
+    text-shadow: 0 0 20px rgba(255,255,255,0.6);
+    will-change: transform, opacity;
+}
+@keyframes pop {
+    0% { transform: scale(0) rotate(-45deg); opacity: 1; }
+    30% { transform: scale(1.6) rotate(15deg); opacity: 1; }
+    100% { transform: scale(1.1) rotate(0deg); opacity: 0; }
+}
+
+@media (min-width: 769px) {
+    .page {
+        align-items: flex-start;
+        text-align: left;
+        padding-left: 8%;
+        width: 55%;
+    }
+    .form-container { align-items: flex-start; }
+    .custom-input { text-align: left; }
+    .title-text { font-size: 5.5rem; }
+    .line { font-size: 1.8rem; max-width: 650px; }
+    .poem-text { font-size: 4rem; }
+    .quote-text { font-size: 3.2rem; }
+    .pickup-display { font-size: 2.8rem; }
+    .interactive-flower { font-size: 3.5rem; }
+    .final-text { font-size: 2.2rem; }
+    
+    .photo-container {
+        right: 8%;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32vw;
+        height: 40vw;
+        max-width: 450px;
+        max-height: 550px;
+        animation: floatContainerDesktop 6s ease-in-out infinite;
+    }
+    @keyframes floatContainerDesktop {
+        0%, 100% { transform: translateY(-50%); }
+        50% { transform: translateY(calc(-50% - 15px)); }
+    }
+    .photo-frame { width: 100%; height: 100%; }
+    .desktop-aura {
+        display: block;
+        position: absolute;
+        right: -20%;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 140%;
+        height: 140%;
+        background: radial-gradient(circle, rgba(255,182,193,0.15) 0%, rgba(255,182,193,0) 65%);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        animation: pulseAura 8s infinite alternate ease-in-out;
+    }
+    @keyframes pulseAura {
+        0% { transform: translateY(-50%) scale(0.9); opacity: 0.5; }
+        100% { transform: translateY(-50%) scale(1.1); opacity: 1; }
+    }
+}
+@media (max-width: 768px) {
+    .page {
+        align-items: center;
+        text-align: center;
+        padding: 20px;
+        padding-top: max(45vh, 260px);
+        padding-bottom: 60px;
+        width: 100%;
+        justify-content: flex-start;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+    #page-0 {
+        padding-top: 25vh; /* Center form better on mobile */
+    }
+    .form-container { align-items: center; }
+    .custom-input { text-align: center; }
+    .title-text { font-size: 3rem; margin-bottom: 10px; }
+    .line { font-size: 1.2rem; max-width: 100%; margin: 8px 0; }
+    .poem-text { font-size: 2rem; margin: 4px 0; line-height: 1.2; }
+    .quote-text { font-size: 1.6rem; margin: 6px 0; }
+    .pickup-display { font-size: 1.8rem; min-height: 60px; margin: 5px 0; }
+    .interactive-flower { font-size: 2.5rem; }
+    .final-text { font-size: 1.3rem; margin-top: 15px; }
+    
+    .photo-container {
+        top: 6vh;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 32vh;
+        height: 32vh;
+        max-width: 220px;
+        max-height: 220px;
+        animation: floatContainerMobile 6s ease-in-out infinite;
+    }
+    @keyframes floatContainerMobile {
+        0%, 100% { transform: translateX(-50%) translateY(0); }
+        50% { transform: translateX(-50%) translateY(-10px); }
+    }
+    .photo-frame { width: 100%; height: 100%; }
+    .next-btn { margin-top: 15px; padding: 10px 25px; font-size: 1rem; }
+}
+</style>
+</head>
+<body>
+<div id="bg-layers">
+    <div id="bg-0" class="bg-layer active"></div>
+    <div id="bg-1" class="bg-layer"></div>
+    <div id="bg-2" class="bg-layer"></div>
+    <div id="bg-3" class="bg-layer"></div>
+    <div id="bg-4" class="bg-layer"></div>
+    <div id="bg-5" class="bg-layer"></div>
+    <div id="bg-6" class="bg-layer"></div>
+    <div id="bg-7" class="bg-layer"></div>
+</div>
+
+<div id="firefly-container"></div>
+<div id="petal-container"></div>
+<div id="flower-container"></div>
+
+<div class="photo-container" id="photo-frame-container">
+    <div class="desktop-aura"></div>
+    <div class="photo-frame">
+        <!-- Placeholder image if 'Best.jpg' is missing, keeps design beautiful -->
+        <img src="Best.jpg" alt="Her Photo" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1520690284024-5fa5638a1f6a?auto=format&fit=crop&q=80&w=800';">
+    </div>
+</div>
+
+<div id="pages-container">
+    <!-- NEW INTRO PAGE -->
+    <div class="page active" id="page-0">
+        <h1 class="line title-text">Welcome</h1>
+        <p class="line">To begin this special experience, please enter your details.</p>
+        <form id="intro-form" class="line form-container">
+            <input type="text" id="user-name" placeholder="Your Name" required class="custom-input" autocomplete="name">
+            <input type="tel" id="user-phone" placeholder="Your Phone Number" required class="custom-input" autocomplete="tel">
+            <button type="submit" class="next-btn">Enter</button>
+        </form>
+    </div>
+
+    <!-- EXISTING PAGES -->
+    <div class="page" id="page-1">
+        <h1 class="line title-text" id="welcome-message">Hey there...</h1>
+        <p class="line">Today is a day meant for celebrating beautiful things. Something special is about to happen for someone special.</p>
+        <button type="button" class="next-btn">Continue</button>
+    </div>
+
+    <div class="page" id="page-2">
+        <p class="line">Do you know which flower represents your unique beauty?</p>
+        <p class="line">Juhi. Nothing is as beautiful as you.</p>
+        <button type="button" class="next-btn">Continue</button>
+    </div>
+
+    <div class="page" id="page-3">
+        <p class="line quote-text">&ldquo;If I had a single flower for every time I think about you...&rdquo;</p>
+        <p class="line quote-text">&ldquo;...I could walk forever in my garden.&rdquo;</p>
+        <button type="button" class="next-btn">Continue</button>
+    </div>
+
+    <div class="page" id="page-4">
+        <p class="line">You are the garden where the flowers never fade...</p>
+        <p class="line">...because to me, you outshine them all.</p>
+        <button type="button" class="next-btn">Continue</button>
+    </div>
+
+    <div class="page" id="page-5">
+        <p class="line poem-text">A thousand blossoms bloom in spring,</p>
+        <p class="line poem-text">And sweet perfumes the breezes bring,</p>
+        <p class="line poem-text">But of all the flowers the world once knew,</p>
+        <p class="line poem-text">None could ever rival you.</p>
+        <button type="button" class="next-btn">Continue</button>
+    </div>
+
+    <div class="page" id="page-6">
+        <h2 class="line title-text" style="font-size: 3.5rem;">Pick a flower...</h2>
+        <div class="line flower-grid">
+            <div class="interactive-flower" onclick="revealLine(this, 'If I had a garden, I’d plant roses… but you’d still be the most beautiful thing in it.🌹')">🌹</div>
+            <div class="interactive-flower" onclick="revealLine(this, 'Are you a sunflower? Because I always turn to look at you. 🌻')">🌻</div>
+            <div class="interactive-flower" onclick="revealLine(this, 'You must be a garden, because I am digging you. You must be a daisy… simple, beautiful, and impossible to ignore.')">🌼</div>
+            <div class="interactive-flower" onclick="revealLine(this, 'If beauty were a blossom, you\'d be the whole spring. 🌺')">🌺</div>
+            <div class="interactive-flower" onclick="revealLine(this, 'My love for you blooms more every single day. Like cherry blossoms, you don’t just catch my eye… you stay on my mind.')">🌸</div>
+            <div class="interactive-flower" onclick="revealLine(this, 'I must be a butterfly, because I am drawn to your beauty. 🦋')">🦋</div>
+            <div class="interactive-flower" onclick="revealLine(this, 'Are you a florist? Because my life is rosy with you. 🌷')">🌷</div>
+            <div class="interactive-flower" onclick="revealLine(this, 'I was going to give you a flower, but you are the prettiest one here. 💐')">💐</div>
+        </div>
+        <p class="pickup-display" id="pickup-display"></p>
+        <button type="button" class="next-btn">Continue</button>
+    </div>
+
+    <div class="page" id="page-7">
+        <h1 class="line title-text">Happy National Flower Day</h1>
+        <p class="line">You are the kind of flower who makes someone's life like a garden of heaven.</p>
+        <p class="line final-text">I will give your gift on the movie day. 🌸</p>
+    </div>
+</div>
+
+<script>
+const petalContainer = document.getElementById('petal-container');
+const flowerContainer = document.getElementById('flower-container');
+const fireflyContainer = document.getElementById('firefly-container');
+
+const themes = {
+    0: { flower: '✨', colors: ['#ffffff', '#ffd1dc'], firefly: '#ffffff' },
+    1: { flower: '🌸', colors: ['#ffb7c5', '#ff9eaf'], firefly: '#ffb7c5' },
+    2: { flower: '🌹', colors: ['#ff0844', '#8b0000'], firefly: '#ff0844' },
+    3: { flower: '🌼', colors: ['#fffacd', '#ffd700'], firefly: '#ffffff' },
+    4: { flower: '🌻', colors: ['#ffd700', '#ff8c00'], firefly: '#ffd700' },
+    5: { flower: '🌷', colors: ['#da70d6', '#8a2be2'], firefly: '#da70d6' },
+    6: { flower: '💐', colors: ['#87cefa', '#ffb6c1'], firefly: '#87cefa' },
+    7: { flower: '🪷', colors: ['#ffd1dc', '#ff69b4'], firefly: '#ffd1dc' }
+};
+
+let currentPage = 0;
+const totalPages = 7;
+
+// Handle Form Submission on Intro Page
+document.getElementById('intro-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Get values from inputs (HTML5 validation guarantees they are filled)
+    const userName = document.getElementById('user-name').value.trim();
+    const userPhone = document.getElementById('user-phone').value.trim();
+    
+    // Personalize Page 1 using the provided name
+    document.getElementById('welcome-message').innerText = `Hey there, ${userName}...`;
+    
+    // Reveal photo frame and move to page 1
+    document.getElementById('photo-frame-container').classList.add('visible');
+    
+    if(currentPage < totalPages) {
+        currentPage++;
+        showPage(currentPage);
+    }
+});
+
+function createPetal() {
+    const petal = document.createElement('div');
+    petal.classList.add('petal');
+    const colors = themes[currentPage].colors;
+    petal.style.background = `radial-gradient(circle, ${colors[0]}, ${colors[1]})`;
+    petal.style.boxShadow = `0 0 8px ${colors[1]}`;
+    const size = Math.random() * 15 + 10;
+    petal.style.width = size + 'px';
+    petal.style.height = size + 'px';
+    petal.style.left = Math.random() * 100 + 'vw';
+    const duration = Math.random() * 6 + 6;
+    petal.style.animationDuration = duration + 's';
+    petalContainer.appendChild(petal);
+    setTimeout(() => {
+        petal.remove();
+    }, duration * 1000);
+}
+
+function createFirefly() {
+    const firefly = document.createElement('div');
+    firefly.classList.add('firefly');
+    const color = themes[currentPage].firefly;
+    const size = Math.random() * 4 + 2;
+    firefly.style.width = size + 'px';
+    firefly.style.height = size + 'px';
+    firefly.style.left = Math.random() * 100 + 'vw';
+    firefly.style.background = color;
+    firefly.style.boxShadow = `0 0 10px 2px ${color}`;
+    const duration = Math.random() * 10 + 10;
+    firefly.style.animationDuration = duration + 's';
+    fireflyContainer.appendChild(firefly);
+    setTimeout(() => {
+        firefly.remove();
+    }, duration * 1000);
+}
+
+setInterval(createPetal, 700);
+setInterval(createFirefly, 1200);
+
+function spawnFlower(x, y) {
+    const bloom = document.createElement('div');
+    bloom.classList.add('bloom');
+    bloom.innerText = themes[currentPage].flower;
+    bloom.style.left = (x - 20) + 'px';
+    bloom.style.top = (y - 20) + 'px';
+    flowerContainer.appendChild(bloom);
+    setTimeout(() => {
+        bloom.remove();
+    }, 1200);
+}
+
+function revealLine(flowerElement, text) {
+    const display = document.getElementById('pickup-display');
+    display.classList.remove('show');
+    
+    flowerElement.style.transform = 'scale(1.5)';
+    setTimeout(() => {
+        flowerElement.style.transform = '';
+    }, 300);
+
+    setTimeout(() => {
+        display.innerText = text;
+        display.classList.add('show');
+    }, 300);
+}
+
+function showPage(pageNum) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.bg-layer').forEach(bg => bg.classList.remove('active'));
+    
+    const page = document.getElementById(`page-${pageNum}`);
+    const bg = document.getElementById(`bg-${pageNum}`);
+    
+    page.classList.add('active');
+    if(bg) bg.classList.add('active');
+    
+    const lines = page.querySelectorAll('.line');
+    const btn = page.querySelector('.next-btn');
+    
+    lines.forEach(line => line.classList.remove('visible'));
+    if(btn) btn.classList.remove('visible');
+    
+    lines.forEach((line, index) => {
+        setTimeout(() => {
+            line.classList.add('visible');
+        }, 300 + (index * 1500));
+    });
+    
+    if(btn) {
+        setTimeout(() => {
+            btn.classList.add('visible');
+        }, 300 + (lines.length * 1500));
+    }
+}
+
+// Attach event listeners only to type="button" next-btns (ignores the form submit button)
+document.querySelectorAll('.next-btn[type="button"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if(currentPage < totalPages) {
+            currentPage++;
+            showPage(currentPage);
+        }
+    });
+});
+
+document.addEventListener('click', (e) => {
+    if(e.target.classList.contains('next-btn') || e.target.classList.contains('interactive-flower') || e.target.tagName.toLowerCase() === 'input') return;
+    spawnFlower(e.clientX, e.clientY);
+});
+
+document.addEventListener('touchstart', (e) => {
+    if(e.target.classList.contains('next-btn') || e.target.classList.contains('interactive-flower') || e.target.tagName.toLowerCase() === 'input') return;
+    const touch = e.touches[0];
+    spawnFlower(touch.clientX, touch.clientY);
+});
+
+// Initialize the first page
+showPage(0);
+</script>
+</body>
+</html>
