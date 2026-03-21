@@ -162,7 +162,6 @@ body {
     margin-top: 30px;
 }
 
-/* Form Styles */
 .form-container {
     display: flex;
     flex-direction: column;
@@ -373,7 +372,7 @@ body {
         -webkit-overflow-scrolling: touch;
     }
     #page-0 {
-        padding-top: 25vh; /* Center form better on mobile */
+        padding-top: 25vh;
     }
     .form-container { align-items: center; }
     .custom-input { text-align: center; }
@@ -423,24 +422,24 @@ body {
 <div class="photo-container" id="photo-frame-container">
     <div class="desktop-aura"></div>
     <div class="photo-frame">
-        <!-- Placeholder image if 'Best.jpg' is missing, keeps design beautiful -->
         <img src="Best.jpg" alt="Her Photo" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1520690284024-5fa5638a1f6a?auto=format&fit=crop&q=80&w=800';">
     </div>
 </div>
 
 <div id="pages-container">
-    <!-- NEW INTRO PAGE -->
     <div class="page active" id="page-0">
         <h1 class="line title-text">Welcome</h1>
         <p class="line">To begin this special experience, please enter your details.</p>
         <form id="intro-form" class="line form-container">
             <input type="text" id="user-name" placeholder="Your Name" required class="custom-input" autocomplete="name">
-            <input type="tel" id="user-phone" placeholder="Your Phone Number" required class="custom-input" autocomplete="tel">
+            <label for="user-photo" class="custom-input" style="cursor: pointer; text-align: center; display: block;">
+                <span id="file-name-display">Upload Your Photo 📸</span>
+                <input type="file" id="user-photo" accept="image/*" required style="display: none;">
+            </label>
             <button type="submit" class="next-btn">Enter</button>
         </form>
     </div>
 
-    <!-- EXISTING PAGES -->
     <div class="page" id="page-1">
         <h1 class="line title-text" id="welcome-message">Hey there...</h1>
         <p class="line">Today is a day meant for celebrating beautiful things. Something special is about to happen for someone special.</p>
@@ -449,7 +448,7 @@ body {
 
     <div class="page" id="page-2">
         <p class="line">Do you know which flower represents your unique beauty?</p>
-        <p class="line">Juhi. Nothing is as beautiful as you.</p>
+        <p class="line" id="flower-message">Nothing is as beautiful as you.</p>
         <button type="button" class="next-btn">Continue</button>
     </div>
 
@@ -515,18 +514,28 @@ const themes = {
 let currentPage = 0;
 const totalPages = 7;
 
-// Handle Form Submission on Intro Page
+document.getElementById('user-photo').addEventListener('change', function(e) {
+    const fileName = e.target.files[0] ? e.target.files[0].name : 'Upload Your Photo 📸';
+    document.getElementById('file-name-display').innerText = fileName;
+});
+
 document.getElementById('intro-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // Get values from inputs (HTML5 validation guarantees they are filled)
     const userName = document.getElementById('user-name').value.trim();
-    const userPhone = document.getElementById('user-phone').value.trim();
+    const photoInput = document.getElementById('user-photo');
     
-    // Personalize Page 1 using the provided name
     document.getElementById('welcome-message').innerText = `Hey there, ${userName}...`;
+    document.getElementById('flower-message').innerText = `${userName}. Nothing is as beautiful as you.`;
     
-    // Reveal photo frame and move to page 1
+    if (photoInput.files && photoInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.querySelector('.photo-frame img').src = e.target.result;
+        }
+        reader.readAsDataURL(photoInput.files[0]);
+    }
+    
     document.getElementById('photo-frame-container').classList.add('visible');
     
     if(currentPage < totalPages) {
@@ -630,7 +639,6 @@ function showPage(pageNum) {
     }
 }
 
-// Attach event listeners only to type="button" next-btns (ignores the form submit button)
 document.querySelectorAll('.next-btn[type="button"]').forEach(btn => {
     btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -652,7 +660,6 @@ document.addEventListener('touchstart', (e) => {
     spawnFlower(touch.clientX, touch.clientY);
 });
 
-// Initialize the first page
 showPage(0);
 </script>
 </body>
